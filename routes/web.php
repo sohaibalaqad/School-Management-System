@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Grades\GradesController;
+use App\Http\Controllers\Classroom\ClassroomController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -21,17 +22,29 @@ Route::group(
         'prefix' => LaravelLocalization::setLocale(),
         'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath']
     ],
-    function () {   
+    function () {
+        // ======================== Home ========================
         Route::get('/', function () {
             return view('welcome');
         });
-        
-        Route::get('/dashboard', function () {
-            return view('dashboard');
-        })->middleware(['auth'])->name('dashboard');
-        
-        require __DIR__ . '/auth.php';
 
-        Route::resource('grades', GradesController::class);
+        Route::group(['middleware' => ['auth']], function () {
+                // ======================== Dashboard ========================
+                Route::get('/dashboard', function () {
+                    return view('dashboard');
+                })->name('dashboard');
+
+                // ======================== Grades ========================
+                Route::resource('grades', GradesController::class);
+
+                // ======================== Classrooms ========================
+                Route::resource('classrooms', ClassroomController::class);
+                Route::post('deleteAll', [ClassroomController::class, 'deleteAll'])
+                    ->name('deleteAll');
+                Route::post('filterByGrade', [ClassroomController::class, 'filterByGrade'])
+                    ->name('filterByGrade');
+            });
+
+        require __DIR__ . '/auth.php';
     }
 );
